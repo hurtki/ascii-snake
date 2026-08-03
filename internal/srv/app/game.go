@@ -40,7 +40,7 @@ func InitGame(size int) *Game {
 	return &Game{
 		plot:        plot,
 		cntr:        1,
-		AfterTickCh: make(chan struct{}, 10000),
+		AfterTickCh: make(chan struct{}),
 	}
 }
 
@@ -72,14 +72,24 @@ func (g *Game) Start(tickTime time.Duration) {
 		g.addQueue = g.addQueue[:0]
 
 		g.mu.Unlock()
-		g.AfterTickCh <- struct{}{}
+
+		select {
+		case g.AfterTickCh <- struct{}{}:
+		default:
+		}
 	}
 }
 
-func (g *Game) GetTickMap() [][]Cell {
+func (g *Game) GetMapCopyAfterTick() [][]Cell {
 	<-g.AfterTickCh
 	g.mu.RLock()
-	plot := g.plot
+
+	res := make([][]Cell, len(g.plot))
+	for i := range res {
+		res[i] = make([]Cell, len(g.plot))
+		copy(g.plot[i], res[i])
+	}
+
 	g.mu.RUnlock()
-	return plot
+	return res
 }

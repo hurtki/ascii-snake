@@ -20,9 +20,11 @@ func main() {
 	game := app.InitGame(20)
 	go game.Start(time.Second / 3)
 
-	var wsHandler ws.Server
-	usecase := domain.NewGameUsecase(game, &wsHandler)
-	wsHandler = *ws.NewServer(usecase, logger)
+	sessionManager := ws.NewSessionManager()
+
+	usecase := domain.NewGameUsecase(game, sessionManager)
+
+	wsHandler := *ws.NewServer(game, logger, sessionManager)
 
 	joinHandler := http_handlers.NewJoinHandler(usecase)
 
@@ -48,6 +50,8 @@ func main() {
 	})
 
 	http.HandleFunc("GET /room", joinHandler.Join)
+
+	go wsHandler.WriteLoop()
 
 	http.ListenAndServe(":80", nil)
 }

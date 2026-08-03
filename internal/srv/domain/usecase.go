@@ -28,7 +28,7 @@ type GameUsecase struct {
 }
 
 type SessionManager interface {
-	CreateSession(ctx context.Context, token string, playerID int) error
+	Create(ctx context.Context, token string, playerID int) error
 }
 
 func NewGameUsecase(game *app.Game, sm SessionManager) *GameUsecase {
@@ -46,25 +46,11 @@ func (u *GameUsecase) JoinRoom(ctx context.Context) (JoinOut, error) {
 	token := genRandomString(baseTokenSymbolsCount)
 	size := u.game.GetMapSize()
 
-	u.sm.CreateSession(ctx, token, playerID)
+	u.sm.Create(ctx, token, playerID)
 
 	return JoinOut{
 		Token:    token,
 		MapSize:  size,
 		PlayerID: playerID,
 	}, nil
-}
-
-func (u *GameUsecase) Move(ctx context.Context, motion app.Direction, playerID int) error {
-	u.game.AddMove(app.Move{PlayerID: playerID, Direction: motion})
-	return nil
-}
-
-func (u *GameUsecase) GetMap(ctx context.Context) ([][]app.Cell, error) {
-	plot, _, _ := u.sg.Do("", func() (any, error) {
-		return u.game.GetTickMap(), nil
-	})
-
-	field, _ := plot.([][]app.Cell)
-	return field, nil
 }

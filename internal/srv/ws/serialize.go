@@ -9,19 +9,39 @@ import (
 // Serializes whole plot into binary format
 // One cell: [[2b player id][1 byte value][1 byte isHead]]
 func SerializePlot(plot [][]app.Cell) []byte {
-	res := make([]byte, 0, len(plot)*len(plot)*4)
-	for _, row := range plot {
-		for _, cell := range row {
-			buf := make([]byte, 2)
-			binary.LittleEndian.PutUint16(buf, uint16(cell.PlayerID))
-			res = append(res, buf...)
-			res = append(res, byte(uint8(cell.Value)))
+	rows := len(plot)
+	if rows == 0 {
+		return nil
+	}
+	cols := len(plot[0])
+	if cols == 0 {
+		return nil
+	}
+
+	// allocating once
+	res := make([]byte, rows*cols*4)
+	idx := 0
+
+	for i := range rows {
+		for j := range cols {
+			cell := &plot[i][j]
+
+			// 1-2 bytes: PlayerID (uint16 LittleEndian)
+			binary.LittleEndian.PutUint16(res[idx:], uint16(cell.PlayerID))
+
+			// 3 byte: Value
+			res[idx+2] = byte(cell.Value)
+
+			// 4 byte: IsHead
 			if cell.IsHead {
-				res = append(res, 1)
+				res[idx+3] = 1
 			} else {
-				res = append(res, 0)
+				res[idx+3] = 0
 			}
+
+			idx += 4
 		}
 	}
+
 	return res
 }
