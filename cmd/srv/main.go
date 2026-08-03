@@ -18,13 +18,13 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdin, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	logger.Info("starting")
 	game := app.InitGame(20)
-	go game.Start(time.Second / 3)
+	go game.Start(time.Second / 10)
 
 	sessionManager := ws.NewSessionManager()
 
 	usecase := domain.NewGameUsecase(game, sessionManager)
 
-	wsHandler := *ws.NewServer(game, logger, sessionManager)
+	wsHandler := ws.NewServer(game, logger, sessionManager)
 
 	joinHandler := http_handlers.NewJoinHandler(usecase)
 

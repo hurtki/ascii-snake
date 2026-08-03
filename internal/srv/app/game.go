@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var snakeLength = 15
+var snakeLength = 10
 
 type Game struct {
 	plot Plot
@@ -87,7 +87,7 @@ func (g *Game) GetMapCopyAfterTick() [][]Cell {
 	res := make([][]Cell, len(g.plot))
 	for i := range res {
 		res[i] = make([]Cell, len(g.plot))
-		copy(g.plot[i], res[i])
+		copy(res[i], g.plot[i])
 	}
 
 	g.mu.RUnlock()

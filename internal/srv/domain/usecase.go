@@ -10,7 +10,7 @@ import (
 )
 
 const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const baseTokenSymbolsCount = 50
+const baseTokenSymbolsCount = 5
 
 func genRandomString(length int) string {
 	str := make([]rune, length)
