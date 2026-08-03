@@ -5,4 +5,4 @@ services:
     container_name: ascii-snake
     restart: always
     ports:
-      - "${PORT:-8080}:80"
+      - "3310:3310"

@@ -30,6 +30,9 @@ type FrameMsg []byte
 type WsErrMsg struct{ Err error }
 
 func NewConnectionManager(addr string) (*ConnectionManager, error) {
+	if !strings.Contains(addr, ":") {
+		addr += ":3310"
+	}
 	res, err := http.Get("http://" + addr + "/room")
 	if err != nil {
 		return nil, err

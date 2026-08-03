@@ -53,5 +53,5 @@ func main() {
 
 	go wsHandler.WriteLoop()
 
-	http.ListenAndServe(":80", nil)
+	http.ListenAndServe(":3310", nil)
 }

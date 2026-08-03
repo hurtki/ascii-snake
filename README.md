@@ -1,8 +1,12 @@
-# zmeika
-## TUI online snake game
+# Ascii-snake
+
+> First **online** snake game in your terminal!
+> Default port is 3310 ( nokia 3310 ref )
+> Free server: `158.178.129.78`
 
 <img width="906" height="1130" alt="image" src="https://github.com/user-attachments/assets/8480648d-b7fc-427d-9667-a4ba710de3e0" />
 
+## Oneline installation
 
 ### Linux (x86_64)
 
@@ -27,4 +31,3 @@ curl -L https://github.com/hurtki/zmeika/releases/latest/download/ascii-snake-li
 ```bash
 curl -L https://github.com/hurtki/zmeika/releases/latest/download/ascii-snake-darwin-arm64 -o ascii-snake && chmod +x ascii-snake && sudo mv ascii-snake /usr/local/bin/
 ```
-
