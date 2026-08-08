@@ -1,8 +1,12 @@
 package app
 
 import (
-	"sync"
+	// "sync"
 	"time"
+
+	"sync"
+
+	"golang.org/x/sync/singleflight"
 )
 
 var snakeLength = 10
@@ -30,6 +34,10 @@ type Game struct {
 
 	// After every tick one struct is sent to notify readers to check plot
 	AfterTickCh chan struct{}
+
+	// singleflight is used for distribution of a new map after tick
+	// used in GetMapCopyAfterTick()
+	sf singleflight.Group
 }
 
 func InitGame(size int) *Game {
@@ -81,15 +89,18 @@ func (g *Game) Start(tickTime time.Duration) {
 }
 
 func (g *Game) GetMapCopyAfterTick() [][]Cell {
-	<-g.AfterTickCh
-	g.mu.RLock()
+	res, _, _ := g.sf.Do("", func() (any, error) {
+		<-g.AfterTickCh
+		g.mu.RLock()
 
-	res := make([][]Cell, len(g.plot))
-	for i := range res {
-		res[i] = make([]Cell, len(g.plot))
-		copy(res[i], g.plot[i])
-	}
+		res := make([][]Cell, len(g.plot))
+		for i := range res {
+			res[i] = make([]Cell, len(g.plot[i]))
+			copy(res[i], g.plot[i])
+		}
 
-	g.mu.RUnlock()
-	return res
+		g.mu.RUnlock()
+		return res, nil
+	})
+	return res.([][]Cell)
 }
