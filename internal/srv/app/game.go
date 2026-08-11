@@ -13,10 +13,14 @@ type GameConfig struct {
 	BaseSnakeLength int
 	xSize, ySize    int
 	TickTime        time.Duration
+	// (2InterestSize+1)*(1InterestSize+1) is a square player is supposed
+	// to see on client
+	InterestSize int
 }
 
 type Game struct {
 	snakes map[int]Snake
+	apples map[Cord]struct{}
 
 	cfg GameConfig
 
