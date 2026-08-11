@@ -9,12 +9,18 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-var snakeLength = 10
+type GameConfig struct {
+	BaseSnakeLength int
+	xSize, ySize    int
+	TickTime        time.Duration
+}
 
 type Game struct {
-	plot Plot
+	snakes map[int]Snake
 
-	// ID for new plater
+	cfg GameConfig
+
+	// ID for new player
 	// increment after adding a new one
 	// starts with 1, cause 0 is zero value
 	cntr int
@@ -40,25 +46,21 @@ type Game struct {
 	sf singleflight.Group
 }
 
-func InitGame(size int) *Game {
-	plot := make([][]Cell, size)
-	for i := range size {
-		plot[i] = make([]Cell, size)
-	}
+func InitGame(xSize, ySize int) *Game {
 	return &Game{
-		plot:        plot,
 		cntr:        1,
 		AfterTickCh: make(chan struct{}),
 	}
 }
 
-func (g *Game) Start(tickTime time.Duration) {
-	t := time.NewTicker(tickTime)
+func (g *Game) Start() {
+	t := time.NewTicker(g.cfg.TickTime)
 
 	for {
 		<-t.C
 
 		// TICK TIME LOCK
+		// STOP THE WORLD
 		g.mu.Lock()
 
 		moves := DeduplicateMoves(g.movesQueue)
