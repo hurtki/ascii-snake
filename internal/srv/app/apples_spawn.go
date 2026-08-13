@@ -14,7 +14,10 @@ func (g *Game) SpawnApples() {
 			return
 		}
 		gridCord := snake.Cord.ToInterestGrid(g.cfg.InterestSize)
-		gridCell := g.im[gridCord]
+		gridCell, ok := g.im[gridCord]
+		if !ok {
+			continue
+		}
 
 		xRandChunkCord := rand.Int() % g.cfg.InterestSize
 		yRandChunkCord := rand.Int() % g.cfg.InterestSize
