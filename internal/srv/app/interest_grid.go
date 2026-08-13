@@ -1,12 +1,7 @@
 package app
 
-func (g *Game) updateInterestGridMap() {
-	clear(g.im)
-
-	for id, snake := range g.snakes {
-		xGridCord := snake.Cord.X / g.cfg.InterestSize
-		yGridCord := snake.Cord.Y / g.cfg.InterestSize
-		gridCord := Cord{X: xGridCord, Y: yGridCord}
+func (g *Game) ensureSnakeOnInterestGrid(id int, snake Snake) {
+	for _, gridCord := range snake.GetInterestGridCords(g.cfg.InterestSize) {
 		cell, ok := g.im[gridCord]
 		if !ok {
 			g.im[gridCord] = newInterestGridCell()
@@ -15,8 +10,27 @@ func (g *Game) updateInterestGridMap() {
 		cell.EnsureSnake(id, snake)
 		g.im[gridCord] = cell
 	}
+}
 
-	for cord, _ := range g.apples {
+func (g *Game) removeSnakeFromInterestGrid(id int, snake Snake) {
+	for _, gridCord := range snake.GetInterestGridCords(g.cfg.InterestSize) {
+		cell, ok := g.im[gridCord]
+		if !ok {
+			continue
+		}
+		cell.RemoveSnake(id, snake)
+		g.im[gridCord] = cell
+	}
+}
+
+func (g *Game) updateInterestGridMap() {
+	clear(g.im)
+
+	for id, snake := range g.snakes {
+		g.ensureSnakeOnInterestGrid(id, snake)
+	}
+
+	for cord := range g.apples {
 		xGridCord := cord.X / g.cfg.InterestSize
 		yGridCord := cord.Y / g.cfg.InterestSize
 
@@ -47,6 +61,10 @@ func newInterestGridCell() interestGridCell {
 
 func (c *interestGridCell) EnsureSnake(id int, s Snake) {
 	c.Snakes[id] = s
+}
+
+func (c *interestGridCell) RemoveSnake(id int, s Snake) {
+	delete(c.Snakes, id)
 }
 
 func (c *interestGridCell) EnsureApple(cord Cord) {

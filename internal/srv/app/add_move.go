@@ -4,11 +4,11 @@ package app
 // can't return error, but there is not guarantee, that move will be applied
 // *for example if there were two, only first one will be applied
 // not for tick time!
-func (g *Game) AddMove(move Move) {
+func (g *Game) AddMove(snakeID int, move Move) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
 	g.addQueueMu.Lock()
-	g.movesQueue = append(g.movesQueue, move)
+	g.moves[snakeID] = move
 	g.addQueueMu.Unlock()
 }

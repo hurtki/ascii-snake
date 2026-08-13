@@ -14,6 +14,21 @@ type Snake struct {
 	Body []Direction
 }
 
+func (s Snake) GetInterestGridCords(interestSize int) []interestGridCord {
+	m := make(map[interestGridCord]struct{})
+	m[s.Cord.ToInterestGrid(interestSize)] = struct{}{}
+	c := s.Cord
+	for _, d := range s.Body {
+		c = c.Apply(d)
+		m[c.ToInterestGrid(interestSize)] = struct{}{}
+	}
+	res := make([]interestGridCord, len(m))
+	for cord := range m {
+		res = append(res, cord)
+	}
+	return res
+}
+
 func (s Snake) Contains(cord Cord) bool {
 	c := s.Cord
 	for _, d := range s.Body {
@@ -89,6 +104,5 @@ func NewDirection(d uint8) (Direction, error) {
 }
 
 type Move struct {
-	SnakeID   int
 	Direction Direction
 }

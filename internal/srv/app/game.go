@@ -39,8 +39,8 @@ type Game struct {
 
 	// apply move queue
 	// slice of moves that came to server
-	movesQueue   []Move
-	movesQueueMu sync.Mutex
+	moves   map[int]Move
+	movesMu sync.Mutex
 
 	// used on tick "stop the world"
 	mu sync.RWMutex
@@ -77,10 +77,13 @@ func (g *Game) Start() {
 		// STOP THE WORLD
 		g.mu.Lock()
 
-		g.applyMoves(g.movesQueue)
+		g.updateInterestGridMap()
 
-		// clear moves queue
-		g.movesQueue = g.movesQueue[:0]
+		g.completeMoves()
+
+		g.applyMoves()
+
+		clear(g.moves)
 
 		for i, callback := range g.addQueue {
 			id, ok := g.createPlayer()
@@ -92,7 +95,7 @@ func (g *Game) Start() {
 			}
 			callback(id, nil)
 		}
-		// clear add queue
+
 		g.addQueue = g.addQueue[:0]
 
 		g.mu.Unlock()
