@@ -26,11 +26,12 @@ func main() {
 	}()
 
 	cfg := app.GameConfig{
-		BaseSnakeLength: 10,
-		InterestSize:    15,
-		XSize:           100,
-		YSize:           100,
-		TickTime:        time.Millisecond * 100,
+		BaseSnakeLength:              10,
+		InterestSize:                 15,
+		XSize:                        100,
+		YSize:                        100,
+		TickTime:                     time.Millisecond * 100,
+		PlayerSpawnPaddingFromBorder: 1,
 	}
 	game := app.InitGame(cfg)
 
@@ -153,18 +154,18 @@ func drawScreen(out *bufio.Writer, g *app.Game, playerID int, cfg app.GameConfig
 	}
 
 	for x := range cfg.XSize {
-		draw(x, 0, '║')
-		draw(x, cfg.YSize-1, '║')
+		draw(x, -1, '║')
+		draw(x, cfg.YSize, '║')
 	}
 	for y := range cfg.YSize {
-		draw(0, y, '═')
-		draw(cfg.XSize-1, y, '═')
+		draw(-1, y, '═')
+		draw(cfg.XSize, y, '═')
 	}
 
-	draw(0, 0, '╔')
-	draw(cfg.XSize-1, 0, '╚')
-	draw(0, cfg.YSize-1, '╗')
-	draw(cfg.XSize-1, cfg.YSize-1, '╝')
+	draw(-1, -1, '╔')
+	draw(cfg.XSize, -1, '╚')
+	draw(-1, cfg.YSize, '╗')
+	draw(cfg.XSize, cfg.YSize, '╝')
 
 	for appCord := range cell.Apples {
 		draw(appCord.X, appCord.Y, 'O')
