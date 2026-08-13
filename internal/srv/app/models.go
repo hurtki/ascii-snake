@@ -31,6 +31,10 @@ type Cord struct {
 	Y int
 }
 
+func (c Cord) ToInterestGrid(interestSize int) interestGridCord {
+	return interestGridCord{X: c.X / interestSize, Y: c.Y / interestSize}
+}
+
 func (c Cord) Apply(d Direction) Cord {
 	switch d {
 	case Up:

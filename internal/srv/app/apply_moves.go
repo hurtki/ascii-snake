@@ -60,7 +60,7 @@ func (g *Game) applyMoves(moves []Move) {
 		}
 
 		hitApple := false
-		for cord, _ := range interestGridCell.Apples {
+		for cord := range interestGridCell.Apples {
 			if resultCord == cord {
 				hitApple = true
 				// hit the apple

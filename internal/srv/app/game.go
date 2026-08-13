@@ -16,6 +16,9 @@ type GameConfig struct {
 	// (2InterestSize+1)*(1InterestSize+1) is a square player is supposed
 	// to see on client
 	InterestSize int
+
+	// Measured in grid cells ( chunks )
+	PlayerSpawnPaddingFromBorder int
 }
 
 type Game struct {
@@ -50,14 +53,17 @@ type Game struct {
 	sf singleflight.Group
 
 	// interest grid map
-	im map[Cord]interestGridCell
+	im                                   map[interestGridCord]interestGridCell
+	interestGridSizeX, interestGridSizeY int
 }
 
-func InitGame(xSize, ySize int) *Game {
+func InitGame(cfg GameConfig) *Game {
 	return &Game{
-		cntr:        1,
-		AfterTickCh: make(chan struct{}),
-		im:          make(map[Cord]interestGridCell),
+		cntr:              1,
+		AfterTickCh:       make(chan struct{}),
+		im:                make(map[interestGridCord]interestGridCell),
+		interestGridSizeX: (cfg.xSize + cfg.InterestSize - 1) / cfg.InterestSize,
+		interestGridSizeY: (cfg.ySize + cfg.InterestSize - 1) / cfg.InterestSize,
 	}
 }
 

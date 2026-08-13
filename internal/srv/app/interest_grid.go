@@ -31,6 +31,8 @@ func (g *Game) updateInterestGridMap() {
 	}
 }
 
+type interestGridCord = Cord
+
 type interestGridCell struct {
 	Snakes map[int]Snake
 	Apples map[Cord]struct{}
