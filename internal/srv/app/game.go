@@ -48,12 +48,16 @@ type Game struct {
 	// singleflight is used for distribution of a new map after tick
 	// used in GetMapCopyAfterTick()
 	sf singleflight.Group
+
+	// interest grid map
+	im map[Cord]interestGridCell
 }
 
 func InitGame(xSize, ySize int) *Game {
 	return &Game{
 		cntr:        1,
 		AfterTickCh: make(chan struct{}),
+		im:          make(map[Cord]interestGridCell),
 	}
 }
 
@@ -67,8 +71,7 @@ func (g *Game) Start() {
 		// STOP THE WORLD
 		g.mu.Lock()
 
-		moves := DeduplicateMoves(g.movesQueue)
-		g.applyMoves(moves)
+		g.applyMoves(g.movesQueue)
 
 		// clear moves queue
 		g.movesQueue = g.movesQueue[:0]
@@ -83,6 +86,7 @@ func (g *Game) Start() {
 			}
 			callback(id, nil)
 		}
+		// clear add queue
 		g.addQueue = g.addQueue[:0]
 
 		g.mu.Unlock()
@@ -92,21 +96,4 @@ func (g *Game) Start() {
 		default:
 		}
 	}
-}
-
-func (g *Game) GetMapCopyAfterTick() [][]Cell {
-	res, _, _ := g.sf.Do("", func() (any, error) {
-		<-g.AfterTickCh
-		g.mu.RLock()
-
-		res := make([][]Cell, len(g.plot))
-		for i := range res {
-			res[i] = make([]Cell, len(g.plot[i]))
-			copy(res[i], g.plot[i])
-		}
-
-		g.mu.RUnlock()
-		return res, nil
-	})
-	return res.([][]Cell)
 }

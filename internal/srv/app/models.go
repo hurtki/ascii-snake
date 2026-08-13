@@ -56,10 +56,10 @@ func (c Cord) InBound(xSize, ySize int) bool {
 type Direction uint8
 
 const (
-	Up Direction = iota
+	Right Direction = iota
 	Down
 	Left
-	Right
+	Up
 )
 
 var opposites = [...]Direction{
@@ -71,6 +71,10 @@ var opposites = [...]Direction{
 
 func (d Direction) Opposite() Direction {
 	return opposites[d]
+}
+
+func (d Direction) NextClockwise() Direction {
+	return (d + 1) % 4
 }
 
 func NewDirection(d uint8) (Direction, error) {
