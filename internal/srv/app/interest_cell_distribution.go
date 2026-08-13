@@ -3,12 +3,13 @@ package app
 import "maps"
 
 func (g *Game) GetInterestCellForSnake(snakeID int) interestGridCell {
-	g.mu.RLock()
 
 	g.sf.Do("", func() (any, error) {
 		<-g.AfterTickCh
 		return nil, nil
 	})
+
+	g.mu.RLock()
 
 	s, ok := g.snakes[snakeID]
 	if !ok {
@@ -22,7 +23,7 @@ func (g *Game) GetInterestCellForSnake(snakeID int) interestGridCell {
 		} else {
 			// no one is on the map
 			// just center of the map
-			s = Snake{Cord: Cord{g.cfg.xSize / 2, g.cfg.ySize / 2}}
+			s = Snake{Cord: Cord{g.cfg.XSize / 2, g.cfg.YSize / 2}}
 		}
 	}
 

@@ -3,13 +3,19 @@ package app
 func (g *Game) applyMoves() {
 	for snakeID, move := range g.moves {
 		moveSnake := g.snakes[snakeID]
+
+		if moveSnake.Body[0] == move.Direction {
+			// if move is "backwards", replace it with "forward"
+			move.Direction = move.Direction.Opposite()
+		}
 		// for every move check grid cell, where player's head moved
 		// and for optimisation we can check only snakes that are in that spicific grid cell
 		resultCord := moveSnake.Cord.Apply(move.Direction)
 
-		if !resultCord.InBound(g.cfg.xSize, g.cfg.ySize) {
+		if !resultCord.InBound(g.cfg.XSize, g.cfg.YSize) {
 			g.removeSnakeFromInterestGrid(snakeID, moveSnake)
 			delete(g.snakes, snakeID)
+			continue
 		}
 
 		gridCordX := resultCord.X / g.cfg.InterestSize

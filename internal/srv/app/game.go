@@ -11,7 +11,7 @@ import (
 
 type GameConfig struct {
 	BaseSnakeLength int
-	xSize, ySize    int
+	XSize, YSize    int
 	TickTime        time.Duration
 	// (2InterestSize+1)*(1InterestSize+1) is a square player is supposed
 	// to see on client
@@ -59,11 +59,15 @@ type Game struct {
 
 func InitGame(cfg GameConfig) *Game {
 	return &Game{
+		cfg:               cfg,
+		snakes:            make(map[int]Snake),
+		apples:            make(map[Cord]struct{}),
+		moves:             make(map[int]Move),
 		cntr:              1,
 		AfterTickCh:       make(chan struct{}),
 		im:                make(map[interestGridCord]interestGridCell),
-		interestGridSizeX: (cfg.xSize + cfg.InterestSize - 1) / cfg.InterestSize,
-		interestGridSizeY: (cfg.ySize + cfg.InterestSize - 1) / cfg.InterestSize,
+		interestGridSizeX: (cfg.XSize + cfg.InterestSize - 1) / cfg.InterestSize,
+		interestGridSizeY: (cfg.YSize + cfg.InterestSize - 1) / cfg.InterestSize,
 	}
 }
 

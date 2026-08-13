@@ -9,6 +9,11 @@ func (g *Game) AddMove(snakeID int, move Move) {
 	defer g.mu.RUnlock()
 
 	g.addQueueMu.Lock()
+
+	if _, ok := g.snakes[snakeID]; !ok {
+		return
+	}
+
 	g.moves[snakeID] = move
 	g.addQueueMu.Unlock()
 }
