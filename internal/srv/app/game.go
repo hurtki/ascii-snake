@@ -92,7 +92,7 @@ func (g *Game) Start() {
 		for i, callback := range g.addQueue {
 			id, ok := g.createPlayer()
 			if !ok {
-				for j := i; i < len(g.addQueue); i++ {
+				for j := i; j < len(g.addQueue); j++ {
 					g.addQueue[j](0, ErrNoPlaceOnPlot)
 				}
 				break
