@@ -6,26 +6,15 @@ import (
 
 	"sync"
 
+	"github.com/hurtki/ascii-snake/internal/srv/config"
 	"golang.org/x/sync/singleflight"
 )
-
-type GameConfig struct {
-	BaseSnakeLength int
-	XSize, YSize    int
-	TickTime        time.Duration
-	// (2InterestSize+1)*(1InterestSize+1) is a square player is supposed
-	// to see on client
-	InterestSize int
-
-	// Measured in grid cells ( chunks )
-	PlayerSpawnPaddingFromBorder int
-}
 
 type Game struct {
 	snakes map[int]Snake
 	apples map[Cord]struct{}
 
-	cfg GameConfig
+	cfg config.GameConfig
 
 	// ID for new player
 	// increment after adding a new one
@@ -57,7 +46,7 @@ type Game struct {
 	interestGridSizeX, interestGridSizeY int
 }
 
-func InitGame(cfg GameConfig) *Game {
+func InitGame(cfg config.GameConfig) *Game {
 	return &Game{
 		cfg:               cfg,
 		snakes:            make(map[int]Snake),
