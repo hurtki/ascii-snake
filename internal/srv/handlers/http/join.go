@@ -25,8 +25,10 @@ func (h *JoinHandler) Join(rw http.ResponseWriter, req *http.Request) {
 	}
 	rw.WriteHeader(http.StatusOK)
 	json.NewEncoder(rw).Encode(JoinResponse{
-		Token:    out.Token,
-		PlayerID: out.PlayerID,
-		MapSize:  out.MapSize,
+		Token:        out.Token,
+		PlayerID:     out.PlayerID,
+		MapSizeX:     out.MapSizeX,
+		MapSizeY:     out.MapSizeY,
+		InterestSize: out.InterestSize,
 	})
 }

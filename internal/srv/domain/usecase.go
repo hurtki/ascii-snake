@@ -44,13 +44,17 @@ func (u *GameUsecase) JoinRoom(ctx context.Context) (JoinOut, error) {
 		return JoinOut{}, err
 	}
 	token := genRandomString(baseTokenSymbolsCount)
-	size := u.game.GetMapSize()
+	XSize, YSize := u.game.GetXSize(), u.game.GetYSize()
+	interestSize := u.game.GetInterestSize()
 
+	// TODO add error handling and regenerating token in case it already exists
 	u.sm.Create(ctx, token, playerID)
 
 	return JoinOut{
-		Token:    token,
-		MapSize:  size,
-		PlayerID: playerID,
+		Token:        token,
+		MapSizeX:     XSize,
+		MapSizeY:     YSize,
+		InterestSize: interestSize,
+		PlayerID:     playerID,
 	}, nil
 }
