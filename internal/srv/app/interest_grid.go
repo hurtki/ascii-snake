@@ -70,3 +70,12 @@ func (c *interestGridCell) RemoveSnake(id int, s Snake) {
 func (c *interestGridCell) EnsureApple(cord Cord) {
 	c.Apples[cord] = struct{}{}
 }
+
+type InterestZone = interestGridCell
+
+func NewInterestZone() InterestZone {
+	return InterestZone{
+		Snakes: make(map[int]Snake),
+		Apples: make(map[Cord]struct{}),
+	}
+}

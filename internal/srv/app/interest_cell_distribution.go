@@ -2,7 +2,7 @@ package app
 
 import "maps"
 
-func (g *Game) GetInterestCellForSnake(snakeID int) interestGridCell {
+func (g *Game) GetInterestCellForSnake(snakeID int) InterestZone {
 
 	g.sf.Do("", func() (any, error) {
 		<-g.AfterTickCh
@@ -29,7 +29,7 @@ func (g *Game) GetInterestCellForSnake(snakeID int) interestGridCell {
 
 	gridCord := s.Cord.ToInterestGrid(g.cfg.InterestSize)
 
-	res := newInterestGridCell()
+	res := NewInterestZone()
 
 	for x := gridCord.X - 1; x <= gridCord.X+1; x++ {
 		for y := gridCord.Y - 1; y <= gridCord.Y+1; y++ {

@@ -60,19 +60,19 @@ func (s *Server) readLoop(conn *websocket.Conn, token string) {
 		}
 		s.logger.Debug("Move", "direction", motion, "tok", token, "addr", conn.RemoteAddr())
 
-		playerID := s.sm.GetSessionPlayerID(context.TODO(), token)
+		_ = s.sm.GetSessionPlayerID(context.TODO(), token)
 
-		s.game.AddMove(app.Move{PlayerID: playerID, Direction: motion})
+		// s.game.AddMove(app.Move{PlayerID: playerID, Direction: motion})
 	}
 }
 
 func (s *Server) WriteLoop() {
 	for {
-		plot := s.game.GetMapCopyAfterTick()
-		serializedPlot := SerializePlot(plot)
-
-		for _, c := range s.sm.GetAllConns() {
-			c.WriteMessage(websocket.BinaryMessage, serializedPlot)
-		}
+		// plot := s.game.GetMapCopyAfterTick()
+		// serializedPlot := SerializePlot(plot)
+		//
+		// for _, c := range s.sm.GetAllConns() {
+		// 	c.WriteMessage(websocket.BinaryMessage, serializedPlot)
+		// }
 	}
 }

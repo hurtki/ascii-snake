@@ -75,6 +75,8 @@ func (c Cord) InBound(xSize, ySize int) bool {
 type Direction uint8
 
 const (
+	// DON't change the order!
+	// it affects the serialize process
 	Right Direction = iota
 	Down
 	Left
