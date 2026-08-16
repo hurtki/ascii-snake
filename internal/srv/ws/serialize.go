@@ -6,41 +6,53 @@ import (
 	"github.com/hurtki/ascii-snake/internal/srv/app"
 )
 
-// Serializes whole plot into binary format
-// One cell: [[2b player id][1 byte value][1 byte isHead]]
-func SerializePlot(plot [][]app.Cell) []byte {
-	rows := len(plot)
-	if rows == 0 {
-		return nil
-	}
-	cols := len(plot[0])
-	if cols == 0 {
-		return nil
-	}
+const (
+	SnakeTypeOfObject = byte(1)
+	AppleTypeOfObject = byte(2)
+)
 
-	// allocating once
-	res := make([]byte, rows*cols*4)
-	idx := 0
+func serializeInterestZone(interestZone app.InterestZone) []byte {
+	approxLen := len(interestZone.Apples)*10 + len(interestZone.Snakes)*5
+	res := make([]byte, 0, approxLen)
+	curr := 0
 
-	for i := range rows {
-		for j := range cols {
-			cell := &plot[i][j]
+	for snakeID, snake := range interestZone.Snakes {
 
-			// 1-2 bytes: PlayerID (uint16 LittleEndian)
-			binary.LittleEndian.PutUint16(res[idx:], uint16(cell.PlayerID))
+		neededForSnakeHeader := 9
+		res = append(res, make([]byte, neededForSnakeHeader)...)
 
-			// 3 byte: Value
-			res[idx+2] = byte(cell.Value)
+		res[curr] = SnakeTypeOfObject
+		curr++
+		binary.LittleEndian.PutUint16(res[curr:curr+2], uint16(snakeID))
+		curr += 2
+		binary.LittleEndian.PutUint16(res[curr:curr+2], uint16(snake.Cord.X))
+		curr += 2
+		binary.LittleEndian.PutUint16(res[curr:curr+2], uint16(snake.Cord.Y))
+		curr += 2
+		binary.LittleEndian.PutUint16(res[curr:curr+2], uint16(len(snake.Body)))
+		curr += 2
 
-			// 4 byte: IsHead
-			if cell.IsHead {
-				res[idx+3] = 1
-			} else {
-				res[idx+3] = 0
-			}
+		neededForBody := (len(snake.Body) + 3) / 4
+		res = append(res, make([]byte, neededForBody)...)
 
-			idx += 4
+		for i, dir := range snake.Body {
+			var b int = i / 4
+			shift := 6 - 2*(i%4)
+			res[curr+b] |= byte(dir) << shift
 		}
+
+		curr += neededForBody
+	}
+	for appleCord := range interestZone.Apples {
+		neededForApple := 5
+		res = append(res, make([]byte, neededForApple)...)
+
+		res[curr] = AppleTypeOfObject
+		curr++
+		binary.LittleEndian.PutUint16(res[curr:curr+2], uint16(appleCord.X))
+		curr += 2
+		binary.LittleEndian.PutUint16(res[curr:curr+2], uint16(appleCord.Y))
+		curr += 2
 	}
 
 	return res
