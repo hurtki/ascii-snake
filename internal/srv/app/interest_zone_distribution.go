@@ -2,7 +2,7 @@ package app
 
 import "maps"
 
-func (g *Game) GetInterestCellForSnake(snakeID int) InterestZone {
+func (g *Game) GetInterestZoneForSnakeAfterTick(snakeID int) InterestZone {
 
 	g.sf.Do("", func() (any, error) {
 		<-g.AfterTickCh

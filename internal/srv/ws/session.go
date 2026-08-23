@@ -92,16 +92,3 @@ func (sm *SessionManager) GetSessionPlayerID(ctx context.Context, token string) 
 
 	return sess.PlayerID
 }
-func (sm *SessionManager) GetAllConns() []*websocket.Conn {
-	sm.mu.RLock()
-	defer sm.mu.RUnlock()
-
-	conns := make([]*websocket.Conn, 0, len(sm.sessions))
-	for _, entry := range sm.sessions {
-		if entry.Conn != nil {
-			conns = append(conns, entry.Conn)
-		}
-	}
-
-	return conns
-}
