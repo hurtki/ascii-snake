@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o entry ./cmd/srv/
+RUN CGO_ENABLED=0 go build -o entry ./cmd/server/
 
 RUN chmod u+x entry
 

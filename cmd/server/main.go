@@ -55,14 +55,11 @@ func main() {
 			fmt.Printf("Upgrade error: %v\n", err)
 			return
 		}
-		mt.Println("token got:", token)
 
 		wsHandler.HandleWS(conn, token)
 	})
 
 	http.HandleFunc("GET /room", joinHandler.Join)
-
-	go wsHandler.WriteLoop()
 
 	http.ListenAndServe(":3310", nil)
 }
