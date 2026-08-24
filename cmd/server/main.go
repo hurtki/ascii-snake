@@ -59,7 +59,7 @@ func main() {
 		wsHandler.HandleWS(conn, token)
 	})
 
-	http.HandleFunc("GET /room", joinHandler.Join)
+	http.HandleFunc("POST /connect", joinHandler.Join)
 
 	http.ListenAndServe(":3310", nil)
 }

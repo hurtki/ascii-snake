@@ -47,11 +47,15 @@ func (ui *GameUI) drawScreen(snakes []Snake, apples []Apple) bool {
 	viewRadiusX := ui.cfg.InterestSize
 	viewRadiusY := ui.cfg.InterestSize
 
-	var playerSnake Snake
+	var playerSnake *Snake
 	for _, s := range snakes {
 		if s.PlayerID == ui.cfg.PlayerSnakeID {
-			playerSnake = s
+			playerSnake = &s
+			break
 		}
+	}
+	if playerSnake == nil {
+		// snake not on the screen
 	}
 
 	startX := playerSnake.CordX - viewRadiusX

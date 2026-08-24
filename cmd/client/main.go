@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
+	"time"
 
 	"github.com/charmbracelet/x/term"
 )
@@ -21,6 +24,24 @@ func main() {
 		<-sigChan
 		cancel()
 	}()
+
+	for {
+		addr := Input(ctx, "Enter address:")
+		if addr == "" {
+			break
+		}
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
+		defer cancel()
+		gameConn, err := NewGameConnection(ctx, addr)
+		if err != nil {
+			fmt.Printf("can't initialize connection with remote game: %s\n", err.Error())
+			continue
+		}
+		fmt.Println("established connection with game", gameConn.GetGameUICfg())
+		break
+	}
+
+	return
 
 	oldState, err := term.MakeRaw(os.Stdin.Fd())
 	if err == nil {
@@ -43,4 +64,28 @@ func main() {
 	// wire input to network instance in order to send user's moves
 
 	<-ctx.Done()
+}
+
+func Input(ctx context.Context, prompt string) string {
+	if prompt != "" {
+		fmt.Print(prompt)
+	}
+
+	res := make(chan string, 1)
+
+	go func() {
+		reader := bufio.NewReader(os.Stdin)
+		text, err := reader.ReadString('\n')
+		if err != nil {
+			res <- ""
+		}
+		res <- strings.TrimRight(text, "\r\n")
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ""
+	case text := <-res:
+		return text
+	}
 }
