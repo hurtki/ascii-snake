@@ -1,5 +1,4 @@
-p
-ackage main
+package main
 
 import (
 	"context"
@@ -10,8 +9,6 @@ import (
 
 	"github.com/gorilla/websocket"
 )
-
-// TODO: implement client websocket and http logic
 
 type GameConnection struct {
 	addr      string
@@ -56,6 +53,25 @@ func NewGameConnection(ctx context.Context, addr string) (*GameConnection, error
 
 }
 
+type GameDrawer interface {
+	DrawScreen(snakes []Snake, apples []Apple)
+}
+
+func (gc *GameConnection) StartDrawing(ctx context.Context, drawer GameDrawer) error {
+	for ctx.Err() == nil {
+		_, data, err := gc.conn.ReadMessage()
+		if err != nil {
+			return fmt.Errorf("can't read message from conn: %w", err)
+		}
+		snakes, apples, err := deserializeBinaryMapResponse(data)
+		if err != nil {
+			return fmt.Errorf("can't deserialize message from server: %w", err)
+		}
+		drawer.DrawScreen(snakes, apples)
+	}
+	return nil
+}
+
 func (gc *GameConnection) GetGameUICfg() GameUICfg {
 	return gc.gameUICfg
 }
@@ -66,4 +82,12 @@ type ConnectResponseDTO struct {
 	MapSizeX     int    `json:"map_size_x"`
 	MapSizeY     int    `json:"map_size_y"`
 	InterestSize int    `json:"interest_size"`
+}
+
+func (gc *GameConnection) Close() error {
+	return gc.conn.Close()
+}
+
+func (gc *GameConnection) SendMove(move Direction) {
+	gc.conn.WriteMessage(websocket.BinaryMessage, []byte{byte(move)})
 }

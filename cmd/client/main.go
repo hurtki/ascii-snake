@@ -25,6 +25,9 @@ func main() {
 		cancel()
 	}()
 
+	gameConn := &GameConnection{}
+	var err error
+
 	for {
 		addr := Input(ctx, "Enter address:")
 		if addr == "" {
@@ -32,7 +35,7 @@ func main() {
 		}
 		ctx, cancel := context.WithTimeout(ctx, time.Second)
 		defer cancel()
-		gameConn, err := NewGameConnection(ctx, addr)
+		gameConn, err = NewGameConnection(ctx, addr)
 		if err != nil {
 			fmt.Printf("can't initialize connection with remote game: %s\n", err.Error())
 			continue
@@ -41,8 +44,6 @@ func main() {
 		break
 	}
 
-	return
-
 	oldState, err := term.MakeRaw(os.Stdin.Fd())
 	if err == nil {
 		defer func() {
@@ -50,20 +51,28 @@ func main() {
 		}()
 	}
 
+	fmt.Print("\033[?25l")
+	defer fmt.Print("\033[?25h\033[2J\033[H")
+
+	gameUI := NewGameUI(bufio.NewWriter(os.Stdout), gameConn.GetGameUICfg())
+
+	go handleInput(ctx, cancel, gameConn)
+
+	gameConn.StartDrawing(ctx, gameUI)
+
 	// get server address from user
 
 	// initialize connection with server ( net.go )
 
 	// initialize UI instance
 
-	fmt.Print("\033[?25l")
-	defer fmt.Print("\033[?25h\033[2J\033[H")
-
 	// wire connection to UI instance in order to start updating the TUI
 
 	// wire input to network instance in order to send user's moves
 
 	<-ctx.Done()
+
+	gameConn.Close()
 }
 
 func Input(ctx context.Context, prompt string) string {

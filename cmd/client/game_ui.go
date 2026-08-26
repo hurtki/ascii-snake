@@ -34,7 +34,7 @@ func NewGameUI(out *bufio.Writer, cfg GameUICfg) *GameUI {
 	}
 }
 
-func (ui *GameUI) drawScreen(snakes []Snake, apples []Apple) bool {
+func (ui *GameUI) DrawScreen(snakes []Snake, apples []Apple) {
 	// playerSnake, ok := cell.Snakes[playerID]
 	// if !ok {
 	// 	out.WriteString("\033[H\033[2J")
@@ -55,6 +55,9 @@ func (ui *GameUI) drawScreen(snakes []Snake, apples []Apple) bool {
 		}
 	}
 	if playerSnake == nil {
+		if len(snakes) > 0 {
+			playerSnake = &snakes[0]
+		}
 		// snake not on the screen
 	}
 
@@ -129,8 +132,6 @@ func (ui *GameUI) drawScreen(snakes []Snake, apples []Apple) bool {
 
 	ui.out.WriteString(sb.String())
 	ui.out.Flush()
-
-	return true
 }
 
 func apply(cordX, cordY int, dir Direction) (int, int) {
