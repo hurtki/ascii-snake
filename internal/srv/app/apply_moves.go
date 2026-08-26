@@ -1,5 +1,6 @@
 package app
 
+// Tick time
 func (g *Game) applyMoves() {
 	for snakeID, move := range g.moves {
 		moveSnake := g.snakes[snakeID]

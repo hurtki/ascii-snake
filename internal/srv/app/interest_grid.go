@@ -1,5 +1,6 @@
 package app
 
+// Tick time
 func (g *Game) ensureSnakeOnInterestGrid(id int, snake Snake) {
 	for _, gridCord := range snake.GetInterestGridCords(g.cfg.InterestSize) {
 		cell, ok := g.im[gridCord]
@@ -12,6 +13,7 @@ func (g *Game) ensureSnakeOnInterestGrid(id int, snake Snake) {
 	}
 }
 
+// Tick time
 func (g *Game) removeSnakeFromInterestGrid(id int, snake Snake) {
 	for _, gridCord := range snake.GetInterestGridCords(g.cfg.InterestSize) {
 		cell, ok := g.im[gridCord]
@@ -23,6 +25,7 @@ func (g *Game) removeSnakeFromInterestGrid(id int, snake Snake) {
 	}
 }
 
+// Tick time
 func (g *Game) updateInterestGridMap() {
 	clear(g.im)
 
@@ -69,13 +72,4 @@ func (c *interestGridCell) RemoveSnake(id int, s Snake) {
 
 func (c *interestGridCell) EnsureApple(cord Cord) {
 	c.Apples[cord] = struct{}{}
-}
-
-type InterestZone = interestGridCell
-
-func NewInterestZone() InterestZone {
-	return InterestZone{
-		Snakes: make(map[int]Snake),
-		Apples: make(map[Cord]struct{}),
-	}
 }

@@ -58,6 +58,8 @@ func main() {
 
 	go handleInput(ctx, cancel, gameConn)
 
+	fmt.Print("\033[2J")
+
 	gameConn.StartDrawing(ctx, gameUI)
 
 	// get server address from user

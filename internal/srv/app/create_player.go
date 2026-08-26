@@ -4,7 +4,7 @@ import "math/rand"
 
 // CreatePlayer finds place for new snake in horizontal or vertical position
 // Initializes cells for snake
-// For Tick time!
+// Tick time
 func (g *Game) createPlayer() (int, bool) {
 	xInnerSize := g.interestGridSizeX - 2*g.cfg.PlayerSpawnPaddingFromBorder
 	total :=
@@ -46,7 +46,14 @@ func (g *Game) createPlayer() (int, bool) {
 		}
 		newSnake := Snake{Cord: newSnakeHeadCord, Body: newBody}
 		g.snakes[g.cntr] = newSnake
+
+		// updaing interest map after creating player
+		cell := newInterestGridCell()
+		cell.EnsureSnake(g.cntr, newSnake)
+		g.im[gridCord] = cell
+
 		g.cntr++
+
 		return g.cntr - 1, true
 	}
 

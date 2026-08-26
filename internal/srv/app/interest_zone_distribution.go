@@ -1,6 +1,17 @@
 package app
 
-import "maps"
+import (
+	"maps"
+)
+
+type InterestZone = interestGridCell
+
+func NewInterestZone() InterestZone {
+	return InterestZone{
+		Snakes: make(map[int]Snake),
+		Apples: make(map[Cord]struct{}),
+	}
+}
 
 func (g *Game) GetInterestZoneForSnakeAfterTick(snakeID int) InterestZone {
 
