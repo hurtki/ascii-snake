@@ -91,7 +91,7 @@ func (g *Game) Start() {
 
 		g.addQueue = g.addQueue[:0]
 
-		g.SpawnApples()
+		g.SpawnApples1()
 
 		g.mu.Unlock()
 
