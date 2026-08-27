@@ -15,7 +15,7 @@ import (
 	lastaddr "github.com/hurtki/ascii-snake/internal/client/repo/last_addr"
 )
 
-const v string = "1.0.3"
+const v string = "2.0.0"
 const lastAddrFilePath = "~/.ascii-snake/last_addr.txt"
 
 func main() {
