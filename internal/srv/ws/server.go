@@ -22,29 +22,33 @@ func NewServer(game *app.Game, logger *slog.Logger, sm *SessionManager) *Server 
 	return &Server{
 		sm:     sm,
 		game:   game,
-		logger: logger,
+		logger: logger.With("service", "ws-server"),
 	}
 }
 
 func (s *Server) HandleWS(conn *websocket.Conn, token string) {
 	if !s.sm.SessionExists(context.TODO(), token) {
-		s.logger.Error("no session found, closing conn", "tok", token, "addr", conn.RemoteAddr())
+		s.logger.Warn("no session found for a new established ws connection, closing conn", "given_tok", token, "addr", conn.RemoteAddr())
 		conn.Close()
 		return
 	}
 
 	if s.sm.SessionHasConn(context.TODO(), token) {
-		s.logger.Error("conn already exists, closing new one", "tok", token, "addr", conn.RemoteAddr())
+		s.logger.Warn("session already has an established ws connection, closing a new", "given_tok", token, "addr", conn.RemoteAddr())
 		conn.Close()
 		return
 	}
 
 	s.sm.LinkConnectionToSession(context.TODO(), token, conn)
 
+	s.logger.Info("linked new connection to an existing session", "tok", token, "addr", conn.RemoteAddr())
+
 	go s.readLoop(conn, token)
+	go s.WriteLoop(conn, token)
 }
 
 func (s *Server) readLoop(conn *websocket.Conn, token string) {
+	s.logger.Info("started read loop", "tok", token)
 	for {
 		_, buf, err := conn.ReadMessage()
 		if err != nil {
@@ -53,26 +57,35 @@ func (s *Server) readLoop(conn *websocket.Conn, token string) {
 			return
 		}
 
-		motion, err := app.NewDirection(uint8(buf[0]))
+		dir, err := app.NewDirection(uint8(buf[0]))
 		if err != nil {
 			s.sm.CloseSession(context.TODO(), token)
 			return
 		}
-		s.logger.Debug("Move", "direction", motion, "tok", token, "addr", conn.RemoteAddr())
 
-		playerID := s.sm.GetSessionPlayerID(context.TODO(), token)
+		snakeID := s.sm.GetSessionPlayerID(context.TODO(), token)
 
-		s.game.AddMove(app.Move{PlayerID: playerID, Direction: motion})
+		s.logger.Debug("Move received", "direction", dir, "tok", token, "player_id", snakeID, "addr", conn.RemoteAddr())
+
+		s.game.AddMove(snakeID, app.Move{Direction: dir})
 	}
 }
 
-func (s *Server) WriteLoop() {
+func (s *Server) WriteLoop(conn *websocket.Conn, token string) {
+	s.logger.Info("started write loop", "tok", token)
+	playerID := s.sm.GetSessionPlayerID(context.TODO(), token)
 	for {
-		plot := s.game.GetMapCopyAfterTick()
-		serializedPlot := SerializePlot(plot)
+		interestZone := s.game.GetInterestZoneForSnakeAfterTick(playerID)
+		payload := serializeInterestZone(interestZone)
 
-		for _, c := range s.sm.GetAllConns() {
-			c.WriteMessage(websocket.BinaryMessage, serializedPlot)
+		if !s.sm.SessionExists(context.TODO(), token) {
+			return
+		}
+		err := conn.WriteMessage(websocket.BinaryMessage, payload)
+		if err != nil {
+			s.logger.Info("connection closed, closing session", "reason", "error writing interest zone payload", "err", err)
+			s.sm.CloseSession(context.TODO(), token)
+			return
 		}
 	}
 }

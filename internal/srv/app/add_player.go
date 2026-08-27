@@ -25,6 +25,7 @@ func (g *Game) AddPlayer() (int, error) {
 		}{playerID, err}
 	})
 	g.addQueueMu.Unlock()
+
 	g.mu.RUnlock()
 
 	res := <-ch

@@ -1,138 +1,77 @@
 package app
 
-type cord struct {
-	x int
-	y int
-}
+// Tick time
+func (g *Game) applyMoves() {
+	for snakeID, move := range g.moves {
+		moveSnake := g.snakes[snakeID]
 
-func (g *Game) applyMoves(moves []Move) {
-	// seen is used to fastly find players on big field
-	headsSeen := make(map[int]cord)
+		if moveSnake.Body[0] == move.Direction {
+			// if move is "backwards", replace it with "forward"
+			move.Direction = move.Direction.Opposite()
+		}
+		// for every move check grid cell, where player's head moved
+		// and for optimisation we can check only snakes that are in that spicific grid cell
+		resultCord := moveSnake.Cord.Apply(move.Direction)
 
-	for x, row := range g.plot {
-		for y, cell := range row {
-			if cell.Value != 0 && cell.IsHead {
-				headsSeen[cell.PlayerID] = cord{x: x, y: y}
+		if !resultCord.InBound(g.cfg.XSize, g.cfg.YSize) {
+			g.removeSnakeFromInterestGrid(snakeID, moveSnake)
+			delete(g.snakes, snakeID)
+			continue
+		}
+
+		gridCordX := resultCord.X / g.cfg.InterestSize
+		gridCordY := resultCord.Y / g.cfg.InterestSize
+
+		interestGridCell := g.im[Cord{X: gridCordX, Y: gridCordY}]
+
+		hitSnake := false
+		for id, potentialSnake := range interestGridCell.Snakes {
+			if potentialSnake.Cord == resultCord {
+				// if we hit someones head, delete both snakes
+				delete(g.snakes, id)
+				delete(g.snakes, snakeID)
+				hitSnake = true
+
+				g.removeSnakeFromInterestGrid(id, potentialSnake)
+
+				break
 			}
-			v := g.plot[x][y]
-			// decrement all the values
-			if v.Value > 0 {
-				if v.Value == 1 {
-					g.plot[x][y].IsHead = false
-					g.plot[x][y].PlayerID = 0
-				}
-				g.plot[x][y].Value--
+			if potentialSnake.Contains(resultCord) {
+				delete(g.snakes, snakeID)
+				hitSnake = true
+				break
 			}
 		}
-	}
+		if hitSnake {
+			g.removeSnakeFromInterestGrid(snakeID, moveSnake)
+			continue
+		}
 
-	for _, m := range moves {
-		if headCord, ok := headsSeen[m.PlayerID]; ok {
-			ok := g.applyOneMoveWithHeadCord(m, headCord)
-			if ok {
-				delete(headsSeen, m.PlayerID)
-				continue
+		hitApple := false
+		for cord := range interestGridCell.Apples {
+			if resultCord == cord {
+				hitApple = true
+				// hit the apple
+				s := g.snakes[snakeID]
+				s.Cord = s.Cord.Apply(move.Direction)
+				s.Body = append([]Direction{move.Direction.Opposite()}, s.Body...)
+				g.snakes[snakeID] = s
+				delete(g.apples, cord)
+				break
 			}
 		}
-	}
 
-	// if there was no move, we also need to move it
-	// going through every seen head, that wasn't already deleted
-	for id, c := range headsSeen {
-		m := Move{PlayerID: id}
-		switch {
-		// prevous was upper => go down
-		case InGaps(cord{c.x - 1, c.y}, len(g.plot)) && g.plot[c.x-1][c.y].PlayerID == id:
-			m.Direction = Down
-		// previous was lower => go up
-		case InGaps(cord{c.x + 1, c.y}, len(g.plot)) && g.plot[c.x+1][c.y].PlayerID == id:
-			m.Direction = Up
-		// previous was at left to head => go right
-		case InGaps(cord{c.x, c.y - 1}, len(g.plot)) && g.plot[c.x][c.y-1].PlayerID == id:
-			m.Direction = Right
-		// previous was at right to head => go left
-		case InGaps(cord{c.x, c.y + 1}, len(g.plot)) && g.plot[c.x][c.y+1].PlayerID == id:
-			m.Direction = Left
+		if hitApple {
+			g.ensureSnakeOnInterestGrid(snakeID, moveSnake)
+			continue
 		}
-		g.applyOneMoveWithHeadCord(m, c)
+
+		s := g.snakes[snakeID]
+		s.Cord = s.Cord.Apply(move.Direction)
+		s.Body = append([]Direction{move.Direction.Opposite()}, s.Body...)[:len(s.Body)]
+		g.snakes[snakeID] = s
+
+		g.removeSnakeFromInterestGrid(snakeID, moveSnake)
+		g.ensureSnakeOnInterestGrid(snakeID, s)
 	}
-}
-
-// aplies one move, when coordintares of player's head that
-// did the move are known
-func (g *Game) applyOneMoveWithHeadCord(move Move, c cord) (ok bool) {
-	ok = true
-	moveCord := cord{}
-	switch move.Direction {
-	case Up:
-		moveCord = cord{x: c.x - 1, y: c.y}
-	case Down:
-		moveCord = cord{x: c.x + 1, y: c.y}
-	case Left:
-		moveCord = cord{x: c.x, y: c.y - 1}
-	case Right:
-		moveCord = cord{x: c.x, y: c.y + 1}
-	}
-
-	startCord := c // coordinates before tick
-
-	if !InGaps(moveCord, len(g.plot)) {
-		g.removePlayer(startCord, -1)
-		return
-	}
-
-	startCell := g.plot[c.x][c.y]              // cell before tick
-	moveCell := g.plot[moveCord.x][moveCord.y] // cell that move goes to
-
-	if moveCell.PlayerID == startCell.PlayerID {
-		if moveCell.Value+1 != startCell.Value {
-			g.removePlayer(startCord, -1)
-			return
-		}
-		// not "OK" case, when move goes backward
-		return false
-	}
-
-	if moveCell.PlayerID > 0 && moveCell.Value > 0 {
-		// if move is into someones head => kill both
-		if moveCell.IsHead {
-			g.removePlayer(moveCord, -1)
-		}
-		g.removePlayer(startCord, -1)
-		return
-	}
-
-	g.plot[moveCord.x][moveCord.y].PlayerID = startCell.PlayerID
-	g.plot[moveCord.x][moveCord.y].IsHead = true
-	// should have value one bigger, then previous head cell
-	// cause all the cells were decremented, before applying moves
-	g.plot[moveCord.x][moveCord.y].Value = startCell.Value + 1
-
-	// not forgetting to change previous head
-	g.plot[startCord.x][startCord.y].IsHead = false
-	return
-}
-
-// Removes all the nearby cells with playerID
-// if playerID -1, init playerID will be ID that stays on cord
-func (g *Game) removePlayer(c cord, playerID int) {
-	if !InGaps(c, len(g.plot)) {
-		return
-	}
-
-	v := g.plot[c.x][c.y]
-
-	if playerID == -1 {
-		playerID = v.PlayerID
-	}
-
-	if v.Value == 0 || v.PlayerID != playerID {
-		return
-	}
-
-	g.plot[c.x][c.y] = Cell{}
-	g.removePlayer(cord{x: c.x - 1, y: c.y}, playerID)
-	g.removePlayer(cord{x: c.x + 1, y: c.y}, playerID)
-	g.removePlayer(cord{x: c.x, y: c.y + 1}, playerID)
-	g.removePlayer(cord{x: c.x, y: c.y - 1}, playerID)
 }

@@ -1,32 +1,102 @@
 package app
 
-import "errors"
+import (
+	"errors"
+)
 
-type Cell struct {
-	// if there is not player here => 0
-	PlayerID int // uint16
-	// if this cell is head of the snake
-	IsHead bool
-
-	// if 0 then there is nothing there
-	// if cell is head => same as snakeLength
-	// "depth" of snake [head[3] <- 2 <- 1 ]
-	Value int
+type Snake struct {
+	// Cord is snake's head coordinates
+	Cord Cord
+	// Body contains slice of directions that represents snake body
+	// for example if head is on (0, 0) and snake is like <--
+	// then directions are going to be [right, right]
+	// every directions says where is the next snake's cell
+	Body []Direction
 }
 
-// Plot is a field of cells
-// Coordinates here are indecies p[x][y] is (x, y) point
-type Plot [][]Cell
+func (s Snake) GetInterestGridCords(interestSize int) []interestGridCord {
+	m := make(map[interestGridCord]struct{})
+	m[s.Cord.ToInterestGrid(interestSize)] = struct{}{}
+	c := s.Cord
+	for _, d := range s.Body {
+		c = c.Apply(d)
+		m[c.ToInterestGrid(interestSize)] = struct{}{}
+	}
+	res := make([]interestGridCord, len(m))
+	for cord := range m {
+		res = append(res, cord)
+	}
+	return res
+}
+
+func (s Snake) Contains(cord Cord) bool {
+	c := s.Cord
+	for _, d := range s.Body {
+		if c == cord {
+			return true
+		}
+		c = c.Apply(d)
+	}
+
+	return c == cord
+}
+
+type Cord struct {
+	X int
+	Y int
+}
+
+func (c Cord) ToInterestGrid(interestSize int) interestGridCord {
+	return interestGridCord{X: c.X / interestSize, Y: c.Y / interestSize}
+}
+
+func (c Cord) Apply(d Direction) Cord {
+	switch d {
+	case Up:
+		c.X--
+	case Down:
+		c.X++
+	case Left:
+		c.Y--
+	case Right:
+		c.Y++
+	}
+	return c
+}
+
+func (c Cord) InBound(xSize, ySize int) bool {
+	if c.X < 0 || c.Y < 0 || c.X >= xSize || c.Y >= ySize {
+		return false
+	}
+	return true
+}
 
 // Direction is used to determine a move on the Plot
 type Direction uint8
 
 const (
-	Up Direction = iota
+	// DON't change the order!
+	// it affects the serialize process
+	Right Direction = iota
 	Down
 	Left
-	Right
+	Up
 )
+
+var opposites = [...]Direction{
+	Up:    Down,
+	Down:  Up,
+	Left:  Right,
+	Right: Left,
+}
+
+func (d Direction) Opposite() Direction {
+	return opposites[d]
+}
+
+func (d Direction) NextClockwise() Direction {
+	return (d + 1) % 4
+}
 
 func NewDirection(d uint8) (Direction, error) {
 	if d > 3 {
@@ -35,8 +105,6 @@ func NewDirection(d uint8) (Direction, error) {
 	return Direction(d), nil
 }
 
-// Abstract move for game input
 type Move struct {
-	PlayerID  int
 	Direction Direction
 }

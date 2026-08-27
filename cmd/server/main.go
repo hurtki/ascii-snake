@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/hurtki/ascii-snake/internal/srv/app"
+	"github.com/hurtki/ascii-snake/internal/srv/config"
 	"github.com/hurtki/ascii-snake/internal/srv/domain"
 	http_handlers "github.com/hurtki/ascii-snake/internal/srv/handlers/http"
 	"github.com/hurtki/ascii-snake/internal/srv/ws"
@@ -16,9 +16,20 @@ import (
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
 	logger.Info("starting")
-	game := app.InitGame(50)
-	go game.Start(time.Second / 10)
+
+	gameConfig, err := config.LoadGameConfigFromEnv()
+	if err != nil {
+		logger.Error("can't load game config", "err", err)
+		return
+	}
+
+	logger.Info("time tick", "time_str", gameConfig.TickTime.String())
+
+	game := app.InitGame(gameConfig)
+
+	go game.Start()
 
 	sessionManager := ws.NewSessionManager()
 
@@ -42,16 +53,13 @@ func main() {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			fmt.Printf("Upgrade error: %v\n", err)
-			return // Ответ со статусом ошибки отправится автоматически
+			return
 		}
-		fmt.Println("token got:", token)
 
 		wsHandler.HandleWS(conn, token)
 	})
 
-	http.HandleFunc("GET /room", joinHandler.Join)
-
-	go wsHandler.WriteLoop()
+	http.HandleFunc("POST /connect", joinHandler.Join)
 
 	http.ListenAndServe(":3310", nil)
 }
