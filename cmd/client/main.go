@@ -12,9 +12,11 @@ import (
 
 	"github.com/charmbracelet/x/term"
 	"github.com/hurtki/ascii-snake/internal/client/game_ui"
+	lastaddr "github.com/hurtki/ascii-snake/internal/client/repo/last_addr"
 )
 
 const v string = "1.0.3"
+const lastAddrFilePath = "~/.ascii-snake/last_addr.txt"
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -30,14 +32,39 @@ func main() {
 	gameConn := &GameConnection{}
 	var err error
 
+	lastAddrStorage, err := lastaddr.New(lastAddrFilePath)
+	var lastAddr string
+	if err == nil {
+		lastAddr, _, _ = lastAddrStorage.Load()
+	}
+
+	var introLine string
+	if lastAddr != "" {
+		introLine = fmt.Sprintf(
+			`ASCII Snake | OS Project | github:hurtki/ascii-snake | %s
+Enter address(ENTER to use last %s):`,
+			v,
+			lastAddr,
+		)
+	} else {
+		introLine = fmt.Sprintf(
+			`ASCII Snake | OS Project | github:hurtki/ascii-snake | %s
+Enter address:`,
+			v,
+		)
+	}
+
 	for {
 		addr := Input(
 			ctx,
-			"ASCII Snake | OS Project | github:hurtki/ascii-snake | %s\nEnter address:",
-			v,
+			introLine,
 		)
-		if addr == "" {
-			return
+		switch {
+		case addr != "":
+		case lastAddr != "":
+			addr = lastAddr
+		default:
+			continue
 		}
 
 		ctx, cancel := context.WithTimeout(ctx, time.Second*3)
@@ -47,6 +74,7 @@ func main() {
 			fmt.Printf("can't initialize connection with remote game: %s\n", err.Error())
 			continue
 		}
+		_ = lastAddrStorage.Save(addr)
 		fmt.Println("established connection with game", gameConn.GetGameUICfg())
 		break
 	}
@@ -73,9 +101,9 @@ func main() {
 	gameConn.Close()
 }
 
-func Input(ctx context.Context, prompt string, args ...any) string {
+func Input(ctx context.Context, prompt string) string {
 	if prompt != "" {
-		fmt.Printf(prompt, args...)
+		fmt.Printf(prompt)
 	}
 
 	res := make(chan string, 1)

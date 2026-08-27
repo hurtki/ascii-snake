@@ -47,11 +47,13 @@ func (ui *GameUI) DrawScreen(snakes []domain.Snake, apples []domain.Apple) {
 		centerY = playerSnake.CordY
 		controlComment = "playing"
 	case len(snakes) > 0:
+		playerSnake = &snakes[0]
 		centerX = snakes[0].CordX
 		centerY = snakes[0].CordY
 		controlComment = "spectating"
 	// case len(snakes) == 0:
 	default:
+		playerSnake = &domain.Snake{}
 		centerX = ui.cfg.XSize / 2
 		centerY = ui.cfg.YSize / 2
 		controlComment = "map center"
@@ -87,15 +89,25 @@ func (ui *GameUI) DrawScreen(snakes []domain.Snake, apples []domain.Apple) {
 	var sb strings.Builder
 
 	sb.WriteString("\033[H")
-	fmt.Fprintf(&sb, "X:%d, Y:%d | apples: %d | package: %d:%d:%d | %s exit: Q\r\n\r\n",
+
+	info := fmt.Sprintf("X:%d, Y:%d | %d | %d | %d | %d:%d:%d | %s exit: Q",
 		centerX,
 		centerY,
+		len(playerSnake.Body),
 		len(apples),
+		len(snakes),
 		time.Now().Hour(),
 		time.Now().Minute(),
 		time.Now().Second(),
 		controlComment,
 	)
+
+	sb.WriteString(info)
+	for range cols*2 - len(info) {
+		sb.WriteRune(' ')
+	}
+
+	sb.WriteString("\r\n")
 
 	for i := range rows {
 		for j := range cols {
