@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/x/term"
+	"github.com/hurtki/ascii-snake/internal/client/game_ui"
 )
 
 func main() {
@@ -54,7 +55,7 @@ func main() {
 	fmt.Print("\033[?25l")
 	defer fmt.Print("\033[?25h\033[2J\033[H")
 
-	gameUI := NewGameUI(bufio.NewWriter(os.Stdout), gameConn.GetGameUICfg())
+	gameUI := game_ui.NewGameUI(bufio.NewWriter(os.Stdout), gameConn.GetGameUICfg())
 
 	go handleInput(ctx, cancel, gameConn)
 

@@ -8,12 +8,14 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/hurtki/ascii-snake/internal/client/domain"
+	"github.com/hurtki/ascii-snake/internal/client/game_ui"
 )
 
 type GameConnection struct {
 	addr      string
 	conn      *websocket.Conn
-	gameUICfg GameUICfg
+	gameUICfg game_ui.GameUICfg
 }
 
 func NewGameConnection(ctx context.Context, addr string) (*GameConnection, error) {
@@ -43,7 +45,7 @@ func NewGameConnection(ctx context.Context, addr string) (*GameConnection, error
 	return &GameConnection{
 		addr: addr,
 		conn: conn,
-		gameUICfg: GameUICfg{
+		gameUICfg: game_ui.GameUICfg{
 			XSize:         dto.MapSizeX,
 			YSize:         dto.MapSizeY,
 			InterestSize:  dto.InterestSize,
@@ -54,7 +56,7 @@ func NewGameConnection(ctx context.Context, addr string) (*GameConnection, error
 }
 
 type GameDrawer interface {
-	DrawScreen(snakes []Snake, apples []Apple)
+	DrawScreen(snakes []domain.Snake, apples []domain.Apple)
 }
 
 func (gc *GameConnection) StartDrawing(ctx context.Context, drawer GameDrawer) error {
@@ -72,7 +74,7 @@ func (gc *GameConnection) StartDrawing(ctx context.Context, drawer GameDrawer) e
 	return nil
 }
 
-func (gc *GameConnection) GetGameUICfg() GameUICfg {
+func (gc *GameConnection) GetGameUICfg() game_ui.GameUICfg {
 	return gc.gameUICfg
 }
 
@@ -88,6 +90,6 @@ func (gc *GameConnection) Close() error {
 	return gc.conn.Close()
 }
 
-func (gc *GameConnection) SendMove(move Direction) {
+func (gc *GameConnection) SendMove(move domain.Direction) {
 	gc.conn.WriteMessage(websocket.BinaryMessage, []byte{byte(move)})
 }

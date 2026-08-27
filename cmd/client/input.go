@@ -4,19 +4,12 @@ import (
 	"context"
 	"os"
 	"time"
-)
 
-type Direction uint8
-
-const (
-	Right Direction = iota
-	Down
-	Left
-	Up
+	"github.com/hurtki/ascii-snake/internal/client/domain"
 )
 
 type gameInput interface {
-	SendMove(Direction)
+	SendMove(domain.Direction)
 }
 
 func handleInput(ctx context.Context, cancel context.CancelFunc, gameInput gameInput) {
@@ -35,13 +28,13 @@ func handleInput(ctx context.Context, cancel context.CancelFunc, gameInput gameI
 			if n == 1 {
 				switch buf[0] {
 				case 'w', 'W':
-					gameInput.SendMove(Up)
+					gameInput.SendMove(domain.Up)
 				case 's', 'S':
-					gameInput.SendMove(Down)
+					gameInput.SendMove(domain.Down)
 				case 'a', 'A':
-					gameInput.SendMove(Left)
+					gameInput.SendMove(domain.Left)
 				case 'd', 'D':
-					gameInput.SendMove(Right)
+					gameInput.SendMove(domain.Right)
 				case 'q', 'Q', 3:
 					cancel()
 					return
@@ -49,13 +42,13 @@ func handleInput(ctx context.Context, cancel context.CancelFunc, gameInput gameI
 			} else if n == 3 && buf[0] == 27 && buf[1] == 91 {
 				switch buf[2] {
 				case 'A':
-					gameInput.SendMove(Up)
+					gameInput.SendMove(domain.Up)
 				case 'B':
-					gameInput.SendMove(Down)
+					gameInput.SendMove(domain.Down)
 				case 'D':
-					gameInput.SendMove(Left)
+					gameInput.SendMove(domain.Left)
 				case 'C':
-					gameInput.SendMove(Right)
+					gameInput.SendMove(domain.Right)
 				}
 			}
 		}
