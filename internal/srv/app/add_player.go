@@ -11,7 +11,6 @@ var (
 // not for tick time!
 func (g *Game) AddPlayer() (int, error) {
 	g.mu.RLock()
-	defer g.mu.RUnlock()
 
 	ch := make(chan struct {
 		id  int
@@ -26,6 +25,8 @@ func (g *Game) AddPlayer() (int, error) {
 		}{playerID, err}
 	})
 	g.addQueueMu.Unlock()
+
+	g.mu.RUnlock()
 
 	res := <-ch
 	return res.id, res.err

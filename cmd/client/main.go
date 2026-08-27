@@ -14,8 +14,9 @@ import (
 	"github.com/hurtki/ascii-snake/internal/client/game_ui"
 )
 
-func main() {
+const v string = "1.0.3"
 
+func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -30,11 +31,16 @@ func main() {
 	var err error
 
 	for {
-		addr := Input(ctx, "Enter address:")
+		addr := Input(
+			ctx,
+			"ASCII Snake | OS Project | github:hurtki/ascii-snake | %s\nEnter address:",
+			v,
+		)
 		if addr == "" {
-			break
+			return
 		}
-		ctx, cancel := context.WithTimeout(ctx, time.Second)
+
+		ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 		defer cancel()
 		gameConn, err = NewGameConnection(ctx, addr)
 		if err != nil {
@@ -62,25 +68,14 @@ func main() {
 	fmt.Print("\033[2J")
 
 	gameConn.StartDrawing(ctx, gameUI)
-
-	// get server address from user
-
-	// initialize connection with server ( net.go )
-
-	// initialize UI instance
-
-	// wire connection to UI instance in order to start updating the TUI
-
-	// wire input to network instance in order to send user's moves
-
 	<-ctx.Done()
 
 	gameConn.Close()
 }
 
-func Input(ctx context.Context, prompt string) string {
+func Input(ctx context.Context, prompt string, args ...any) string {
 	if prompt != "" {
-		fmt.Print(prompt)
+		fmt.Printf(prompt, args...)
 	}
 
 	res := make(chan string, 1)

@@ -12,8 +12,6 @@ RUN CGO_ENABLED=0 go build -o entry ./cmd/server/
 
 RUN chmod u+x entry
 
-EXPOSE 80
-
 FROM alpine:latest
 
 COPY --from=build /app/entry .

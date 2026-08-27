@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hurtki/ascii-snake/internal/client/domain"
 )
@@ -29,27 +30,37 @@ func NewGameUI(out *bufio.Writer, cfg GameUICfg) *GameUI {
 type drawFunc func(int, int, rune)
 
 func (ui *GameUI) DrawScreen(snakes []domain.Snake, apples []domain.Apple) {
-	viewRadiusX := ui.cfg.InterestSize
-	viewRadiusY := ui.cfg.InterestSize
-
+	var centerX, centerY int
 	var playerSnake *domain.Snake
+	var controlComment string
+
 	for _, s := range snakes {
 		if s.PlayerID == ui.cfg.PlayerSnakeID {
 			playerSnake = &s
 			break
 		}
 	}
-	var startX, endX, startY, endY int
-	if playerSnake == nil && len(snakes) > 0 {
-		playerSnake = &snakes[0]
+
+	switch {
+	case playerSnake != nil:
+		centerX = playerSnake.CordX
+		centerY = playerSnake.CordY
+		controlComment = "playing"
+	case len(snakes) > 0:
+		centerX = snakes[0].CordX
+		centerY = snakes[0].CordY
+		controlComment = "spectating"
+	// case len(snakes) == 0:
+	default:
+		centerX = ui.cfg.XSize / 2
+		centerY = ui.cfg.YSize / 2
+		controlComment = "map center"
 	}
 
-	if playerSnake != nil {
-		startX = playerSnake.CordX - viewRadiusX
-		endX = playerSnake.CordX + viewRadiusX
-		startY = playerSnake.CordY - viewRadiusY
-		endY = playerSnake.CordY + viewRadiusY
-	}
+	startX := centerX - ui.cfg.InterestSize
+	endX := centerX + ui.cfg.InterestSize
+	startY := centerY - ui.cfg.InterestSize
+	endY := centerY + ui.cfg.InterestSize
 
 	rows := endX - startX + 1
 	cols := endY - startY + 1
@@ -76,10 +87,14 @@ func (ui *GameUI) DrawScreen(snakes []domain.Snake, apples []domain.Apple) {
 	var sb strings.Builder
 
 	sb.WriteString("\033[H")
-	fmt.Fprintf(&sb, "cord: X:%d, Y:%d | apples from srv: %d exit: Q\r\n\r\n",
-		playerSnake.CordX,
-		playerSnake.CordY,
+	fmt.Fprintf(&sb, "X:%d, Y:%d | apples: %d | package: %d:%d:%d | %s exit: Q\r\n\r\n",
+		centerX,
+		centerY,
 		len(apples),
+		time.Now().Hour(),
+		time.Now().Minute(),
+		time.Now().Second(),
+		controlComment,
 	)
 
 	for i := range rows {

@@ -65,7 +65,7 @@ func (s *Server) readLoop(conn *websocket.Conn, token string) {
 
 		snakeID := s.sm.GetSessionPlayerID(context.TODO(), token)
 
-		s.logger.Debug("Move", "direction", dir, "tok", token, "player_id", snakeID, "addr", conn.RemoteAddr())
+		s.logger.Debug("Move received", "direction", dir, "tok", token, "player_id", snakeID, "addr", conn.RemoteAddr())
 
 		s.game.AddMove(snakeID, app.Move{Direction: dir})
 	}
@@ -81,7 +81,6 @@ func (s *Server) WriteLoop(conn *websocket.Conn, token string) {
 		if !s.sm.SessionExists(context.TODO(), token) {
 			return
 		}
-
 		err := conn.WriteMessage(websocket.BinaryMessage, payload)
 		if err != nil {
 			s.logger.Info("connection closed, closing session", "reason", "error writing interest zone payload", "err", err)
