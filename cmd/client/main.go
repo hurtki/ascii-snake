@@ -60,7 +60,7 @@ Enter address:`,
 			ctx,
 			introLine,
 		)
-		if errors.Is(err, ctx.Err()) {
+		if err != nil && errors.Is(err, ctx.Err()) {
 			return
 		}
 		switch {
