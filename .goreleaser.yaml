@@ -2,7 +2,7 @@ version: 2
 project_name: ascii-snake
 builds:
   - id: default
-    main: ./cmd/client/main.go
+    main: ./cmd/client/
     binary: ascii-snake
     goos:
       - windows
