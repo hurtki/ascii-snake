@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -55,10 +56,13 @@ Enter address:`,
 	}
 
 	for {
-		addr := Input(
+		addr, err := Input(
 			ctx,
 			introLine,
 		)
+		if errors.Is(err, ctx.Err()) {
+			return
+		}
 		switch {
 		case addr != "":
 		case lastAddr != "":
@@ -101,9 +105,9 @@ Enter address:`,
 	gameConn.Close()
 }
 
-func Input(ctx context.Context, prompt string) string {
+func Input(ctx context.Context, prompt string) (string, error) {
 	if prompt != "" {
-		fmt.Printf(prompt)
+		fmt.Print(prompt)
 	}
 
 	res := make(chan string, 1)
@@ -119,8 +123,8 @@ func Input(ctx context.Context, prompt string) string {
 
 	select {
 	case <-ctx.Done():
-		return ""
+		return "", ctx.Err()
 	case text := <-res:
-		return text
+		return text, nil
 	}
 }
